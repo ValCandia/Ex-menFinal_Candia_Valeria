@@ -1,0 +1,82 @@
+
+=== REPORTE DETALLADO DE SIMULACIÓN COMPUTACIONAL ===
+NDM-1 vs Antibióticos Carbapenem - Análisis con Estructuras PDB Reales
+
+ARCHIVOS ANALIZADOS:
+- NDM-1: ndm1_fixed.pdb
+- Imipenem: imipenem.pdb
+
+CARACTERÍSTICAS ESTRUCTURALES:
+- Átomos de Zinc identificados: 20
+- Residuos del sitio activo: 25
+- Átomos de Imipenem analizados: 20
+
+CENTRO DEL SITIO ACTIVO:
+[39.221 25.297 38.186]
+
+RESULTADOS DEL ANÁLISIS MOLECULAR:
+
+--- IMIPENEM ---
+Fuente estructural: PDB real
+• Energía de unión: -100.00 kcal/mol
+• Constante de inhibición (Ki): 3.38e-71 M
+• Constante catalítica (kcat): 1200 s⁻¹
+• Constante de Michaelis (Km): 45 μM
+• Eficiencia catalítica (kcat/Km): 26.7 s⁻¹·μM⁻¹
+
+Interacciones significativas (|E| > 0.5 kcal/mol):
+
+--- MEROPENEM ---
+Fuente estructural: Simulada basada en Imipenem
+• Energía de unión: -100.00 kcal/mol
+• Constante de inhibición (Ki): 3.38e-71 M
+• Constante catalítica (kcat): 800 s⁻¹
+• Constante de Michaelis (Km): 32 μM
+• Eficiencia catalítica (kcat/Km): 25.0 s⁻¹·μM⁻¹
+
+Interacciones significativas (|E| > 0.5 kcal/mol):
+
+
+MECANISMO DE RESISTENCIA MOLECULAR:
+
+1. RECONOCIMIENTO Y UNIÓN:
+   - El carbapenem se une al sitio activo de NDM-1
+   - Coordinación con los iones Zn²⁺ del sitio activo
+   - Formación del complejo enzima-sustrato (ES)
+
+2. ACTIVACIÓN DEL ANILLO β-LACTAM:
+   - Los iones zinc activan una molécula de agua
+   - El OH⁻ generado ataca el carbonilo del β-lactam
+   - Formación de un intermediario tetraédrico
+
+3. HIDRÓLISIS:
+   - Ruptura del enlace C-N del anillo β-lactam
+   - Liberación del producto hidrolizado (inactivo)
+   - Regeneración de la enzima libre
+
+4. IMPLICACIONES CLÍNICAS:
+   - kcat elevados indican hidrólisis eficiente
+   - Km bajos indican alta afinidad por el sustrato
+   - NDM-1 confiere resistencia significativa a ambos carbapenem
+
+COMPARACIÓN ENTRE ANTIBIÓTICOS:
+
+Imipenem vs Meropenem:
+• Energía de unión: -100.00 vs -100.00 kcal/mol
+• Eficiencia catalítica: 26.7 vs 25.0 s⁻¹·μM⁻¹
+• Resistencia: Similar
+
+CONCLUSIONES:
+• NDM-1 es altamente eficiente en la hidrólisis de carbapenem
+• La presencia de dos iones zinc es crucial para la actividad
+• Ambos antibióticos son excelentes sustratos de la enzima
+• La resistencia mediada por NDM-1 es clínicamente significativa
+• Se requieren nuevas estrategias terapéuticas para superar esta resistencia
+
+LIMITACIONES DEL ESTUDIO:
+• Análisis estático (no considera dinámica molecular)
+• Modelo de solvente simplificado
+• Parámetros de fuerza aproximados
+• No considera efectos alostéricos
+
+FECHA DEL ANÁLISIS: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}

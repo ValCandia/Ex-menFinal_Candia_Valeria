@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDM-1 vs Imipenem - Mecanismo de Resistencia Bacteriana</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f4c75, #3282b8, #bbe1fa);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            opacity: 0.95;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .clinical-warning {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: 600;
+        }
+
+        .simulation-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 25px;
+            padding: 30px;
+            margin: 20px 0;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .dual-view, .triple-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Default for dual-view */
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .triple-view {
+            grid-template-columns: 1fr 1fr 1fr; /* For combined imipenem */
+        }
+
+        .mechanism-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .mechanism-panel h3 {
+            margin-top: 0;
+            color: #ffd700;
+            font-size: 1.5em;
+        }
+        .mechanism-panel p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .controls {
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .stage-info {
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255,215,0,0.3);
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        #simulation-canvas, #resistance-canvas, #combined-resistance-canvas {
+            width: 100%;
+            height: 400px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            background: radial-gradient(circle at center, #0a1428, #1e3c72);
+            margin: 15px 0;
+            display: block;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .legend-item {
+            background: rgba(255,255,255,0.15);
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .legend-item:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        .color-box {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            margin-right: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .explanation {
+            background: rgba(0,0,0,0.25);
+            padding: 25px;
+            border-radius: 20px;
+            margin: 25px 0;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .explanation h3 {
+            color: #ffd700;
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+
+        .explanation h4 {
+            color: #4ECDC4;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5, #ffd700);
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+
+        .molecular-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .detail-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #ffd700;
+        }
+
+        .detail-card h4 {
+            color: #ffd700;
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .dual-view, .triple-view {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .controls button {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .legend {
+                grid-template-columns: 1fr;
+            }
+            .molecular-details {
+                grid-template-columns: 1fr;
+            }
+            .stage-info {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧬 Resistencia a Carbapenémicos</h1>
+        <p class="subtitle">NDM-1 (New Delhi Metallo-β-lactamase) vs Imipenem</p>
+
+        <div class="clinical-warning">
+            <strong>⚠️ Problema Clínico Grave:</strong> NDM-1 confiere resistencia a casi todos los β-lactámicos, incluidos carbapenémicos como Imipenem. El gen blaNDM-1 en plásmidos facilita su diseminación entre especies bacterianas.
+        </div>
+
+        <div class="simulation-container">
+            <div class="triple-view">
+                <div class="mechanism-panel">
+                    <h3>🎯 Acción Normal del Imipenem</h3>
+                    <canvas id="simulation-canvas"></canvas>
+                    <p><small>Imipenem inhibe síntesis de peptidoglicano</small></p>
+                </div>
+                <div class="mechanism-panel">
+                    <h3>🛡️ Resistencia por NDM-1 (Imipenem Original)</h3>
+                    <canvas id="resistance-canvas"></canvas>
+                    <p><small>NDM-1 hidroliza el anillo β-lactámico</small></p>
+                </div>
+                <div class="mechanism-panel">
+                    <h3>✨ Resistencia al Imipenem Combinado</h3>
+                    <canvas id="combined-resistance-canvas"></canvas>
+                    <p><small>Modificaciones protegen el anillo β-lactámico</small></p>
+                </div>
+            </div>
+            
+            <div class="stage-info" id="stage-info">
+                <p>Presiona PLAY para ver ambos mecanismos: acción normal vs resistencia bacteriana</p>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+
+            <div class="controls">
+                <button onclick="startSimulation()" id="play-btn">▶️ INICIAR SIMULACIÓN</button>
+                <button onclick="pauseSimulation()" id="pause-btn" disabled>⏸️ PAUSAR</button>
+                <button onclick="resetSimulation()" id="reset-btn">🔄 REINICIAR</button>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="color-box" style="background: #4ECDC4;"></div>
+                    <span>NDM-1 (Metalo-β-lactamasa Clase B)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background: #FFD93D;"></div>
+                    <span>Zn1 y Zn2 (Iones zinc catalíticos)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background: #FF6B6B;"></div>
+                    <span>Imipenem (Carbapenémico)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background: #95E1D3;"></div>
+                    <span>Anillo β-lactámico reactivo</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background: #9B59B6;"></div>
+                    <span>PBP (Proteínas fijadoras de penicilina)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background: #E67E22;"></div>
+                    <span>Peptidoglicano (Pared celular)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background: #3498DB;"></div>
+                    <span>H₂O (Molécula de agua activada)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-box" style="background: #E74C3C;"></div>
+                    <span>Intermediario tetraédrico</span>
+                </div>
+                 <div class="legend-item">
+                    <div class="color-box" style="background: #A0D911;"></div>
+                    <span>Imipenem Combinado (Modificado)</span>
+                </div>
+                 <div class="legend-item">
+                    <div class="color-box" style="background: #FF8C00;"></div>
+                    <span>Grupos de Protección/Estéricos</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="molecular-details">
+            <div class="detail-card">
+                <h4>🔬 Estructura del Imipenem</h4>
+                <p>• <strong>Tipo:</strong> Carbapenémico (β-lactámico)</p>
+                <p>• <strong>Mecanismo:</strong> Anillo β-lactámico altamente reactivo</p>
+                <p>• <strong>Unión:</strong> Enlace covalente irreversible con PBPs</p>
+                <p>• <strong>Resistencia natural:</strong> A β-lactamasas clase A (TEM, SHV)</p>
+            </div>
+            <div class="detail-card">
+                <h4>⚗️ NDM-1 (Clase B de Ambler)</h4>
+                <p>• <strong>Cofactores:</strong> Dos iones Zn²⁺ esenciales (Zn1 y Zn2)</p>
+                <p>• <strong>Mecanismo:</strong> Hidrólisis mediada por zinc</p>
+                <p>• <strong>Diferencia:</strong> No usa serina como clase A</p>
+                <p>• <strong>Actividad:</strong> Hidroliza todos los β-lactámicos</p>
+            </div>
+            <div class="detail-card">
+                <h4>🧪 Ataque Nucleofílico</h4>
+                <p>• <strong>Activación:</strong> Zn²⁺ polariza H₂O</p>
+                <p>• <strong>Ataque:</strong> H₂O → Carbono carbonílico</p>
+                <p>• <strong>Intermediario:</strong> Estado tetraédrico inestable</p>
+                <p>• <strong>Rotura:</strong> Enlace C-N del anillo β-lactámico</p>
+            </div>
+             <div class="detail-card">
+                <h4>✨ Imipenem Combinado</h4>
+                <p>• <strong>Modificaciones:</strong> Grupos acetilo, metoxilo</p>
+                <p>• <strong>Mecanismo de Resistencia:</strong> Impedimento estérico, estabilidad del tioéster</p>
+                <p>• <strong>Resultado:</strong> Acceso restringido al sitio activo de NDM-1, reducción de la tasa de hidrólisis.</p>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h3>🔬 Mecanismo Molecular Detallado:</h3>
+            
+            <h4>📍 Acción Normal del Imipenem:</h4>
+            <p><strong>1. Penetración:</strong> Imipenem atraviesa porinas hacia el espacio periplásmico</p>
+            <p><strong>2. Unión a PBPs:</strong> El anillo β-lactámico se une covalentemente a las proteínas fijadoras de penicilina</p>
+            <p><strong>3. Inhibición de transpeptidación:</strong> Bloquea la síntesis de peptidoglicano</p>
+            <p><strong>4. Lisis bacteriana:</strong> Debilitamiento de la pared celular → muerte celular</p>
+
+            <h4>🛡️ Resistencia mediada por NDM-1 (Imipenem Original):</h4>
+            <p><strong>1. Interceptación:</strong> NDM-1 intercepta Imipenem antes de llegar a PBPs</p>
+            <p><strong>2. Unión al sitio activo:</strong> Iones Zn1 y Zn2 polarizan el grupo carbonilo</p>
+            <p><strong>3. Activación de H₂O:</strong> Los iones zinc activan una molécula de agua</p>
+            <p><strong>4. Ataque nucleofílico:</strong> H₂O ataca el carbono carbonílico del anillo β-lactámico</p>
+            <p><strong>5. Formación de intermediario:</strong> Estado tetraédrico inestable</p>
+            <p><strong>6. Ruptura del anillo:</strong> Rotura del enlace C-N → inactivación del antibiótico</p>
+            <p><strong>7. Liberación:</strong> Imipenem hidrolizado no puede unirse a PBPs</p>
+
+            <h4>✨ Mecanismo de Resistencia del Imipenem Combinado a NDM-1:</h4>
+            <p><strong>1. Grupos protectores:</strong> La acetilación y metoxilación del imipenem combinado introducen volumen en la molécula.</p>
+            <p><strong>2. Impedimento estérico:</strong> Estos grupos voluminosos impiden que el imipenem combinado se acople de manera eficiente al sitio activo de NDM-1. La enzima no puede posicionar correctamente los iones de zinc y la molécula de agua para el ataque.</p>
+            <p><strong>3. Estabilidad mejorada:</strong> La posible estabilidad del enlace tioéster (si aplica) también contribuye a que el anillo β-lactámico sea menos susceptible a la hidrólisis.</p>
+            <p><strong>4. Acceso restringido:</strong> Aunque el imipenem combinado pueda acercarse a NDM-1, el acceso físico al anillo β-lactámico es severamente limitado, reduciendo drásticamente la tasa de hidrólisis.</p>
+            <p><strong>5. Mantenimiento de actividad:</strong> El anillo β-lactámico permanece intacto, permitiendo que el imipenem combinado conserve su capacidad de unirse a las PBPs bacterianas y ejercer su efecto antimicrobiano.</p>
+
+            <h4>🏨 Consecuencias Clínicas:</h4>
+            <p><strong>• Resistencia amplia:</strong> Efectiva contra casi todos los β-lactámicos</p>
+            <p><strong>• Diseminación:</strong> Gen blaNDM-1 en plásmidos transferibles</p>
+            <p><strong>• Especies afectadas:</strong> <i>Klebsiella pneumoniae</i>, <i>E. coli</i>, <i>Acinetobacter baumannii</i></p>
+            <p><strong>• Alternativas:</strong> Colistina, tigeciclina, ceftazidima/avibactam + aztreonam</p>
+        </div>
+    </div>
+
+    <script>
+        const normalCanvas = document.getElementById('simulation-canvas');
+        const resistanceCanvas = document.getElementById('resistance-canvas');
+        const combinedResistanceCanvas = document.getElementById('combined-resistance-canvas'); // New canvas for combined imipenem
+        
+        const normalCtx = normalCanvas.getContext('2d');
+        const resistanceCtx = resistanceCanvas.getContext('2d');
+        const combinedResistanceCtx = combinedResistanceCanvas.getContext('2d'); // New context
+
+        // Adjust canvas size
+        [normalCanvas, resistanceCanvas, combinedResistanceCanvas].forEach(canvas => {
+            canvas.width = 600; // Standard width
+            canvas.height = 400; // Standard height
+        });
+
+        let animationId;
+        let currentStage = 0;
+        let progress = 0; // Represents animation progress within a stage (0-100)
+        let isPlaying = false;
+        let animationFrameCount = 0; // To control speed
+
+        // Initial states for normal simulation
+        let normalState = {
+            imipenem: { x: 500, y: 200, width: 40, height: 25, targetX: 350, speed: 5 },
+            pbp: { x: 300, y: 180, width: 80, height: 60 },
+            peptidoglycan: { x: 50, y: 300, width: 500, height: 40, integrity: 100 },
+            bound: false
+        };
+
+        // Initial states for resistance simulation (original imipenem)
+        let resistanceState = {
+            imipenem: { x: 500, y: 200, width: 40, height: 25, targetX: 280, speed: 5 },
+            ndm1: { x: 200, y: 180, width: 120, height: 80 },
+            zn1: { x: 230, y: 200, radius: 6 },
+            zn2: { x: 270, y: 220, radius: 6 },
+            water: { x: 250, y: 240, radius: 4, activated: false, targetX: 280, targetY: 210, speed: 3 },
+            betaRing: { x: 520, y: 212, radius: 12, intact: true, opacity: 1 },
+            intermediate: { visible: false, x: 280, y: 210, opacity: 0 },
+            hydrolyzed: false
+        };
+
+        // Initial states for combined imipenem resistance simulation
+        let combinedResistanceState = {
+            imipenem: { x: 500, y: 200, width: 60, height: 35, targetX: 280, speed: 5 }, // Larger to show modifications
+            ndm1: { x: 200, y: 180, width: 120, height: 80 },
+            zn1: { x: 230, y: 200, radius: 6 },
+            zn2: { x: 270, y: 220, radius: 6 },
+            water: { x: 250, y: 240, radius: 4, activated: false, targetX: 280, targetY: 210, speed: 3 },
+            betaRing: { x: 520, y: 212, radius: 12, intact: true, opacity: 1 },
+            protectionGroups: [], // To store positions of protective groups
+            attemptedBinding: false, // For visual cue of hindered binding
+            hydrolysisPrevented: false // To show success
+        };
+
+        // Initialize protection groups for combined imipenem
+        function initCombinedImipenem() {
+            const centerX = combinedResistanceState.imipenem.x + combinedResistanceState.imipenem.width / 2;
+            const centerY = combinedResistanceState.imipenem.y + combinedResistanceState.imipenem.height / 2;
+            const offset = 20; // Distance from center of imipenem
+            combinedResistanceState.protectionGroups = [
+                { x: centerX - offset, y: centerY - offset, radius: 5, color: '#FF8C00' },
+                { x: centerX + offset, y: centerY - offset, radius: 5, color: '#FF8C00' },
+                { x: centerX - offset, y: centerY + offset, radius: 5, color: '#FF8C00' }
+            ];
+        }
+        initCombinedImipenem(); // Call once at start
+
+        const stages = [
+            "🎯 Imipenem se aproxima a sus objetivos",
+            "⚔️ Mecanismo normal vs Resistencia por NDM-1 vs Resistencia por Imipenem Combinado",
+            "🔗 Unión: PBP normal vs Sitio activo NDM-1 (Original y Combinado)",
+            "💧 Activación del agua por iones zinc (Original NDM-1)",
+            "⚡ Ataque nucleofílico y formación de intermediario (Original NDM-1)",
+            "💥 Ruptura del enlace C-N del anillo β-lactámico (Original NDM-1)",
+            "✅ Resultado: Inhibición exitosa vs Resistencia (Original) vs Resistencia (Combinado)"
+        ];
+
+        function updateStageInfo(stage) {
+            document.getElementById('stage-info').innerHTML = `<p><strong>Etapa ${stage + 1}:</strong> ${stages[stage]}</p>`;
+            document.getElementById('progress-fill').style.width = `${((stage + 1) / stages.length) * 100}%`;
+        }
+
+        function drawBackground(ctx) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            // Fondo celular
+            ctx.fillStyle = '#0a1428';
+            ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+            // Membrana bacteriana (ejemplo)
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([15, 8]);
+            ctx.beginPath();
+            ctx.moveTo(0, 120);
+            ctx.lineTo(ctx.canvas.width, 125);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#888';
+            ctx.font = '12px Arial';
+            ctx.fillText('Espacio periplásmico', 20, 110);
+            ctx.fillText('Citoplasma', 20, 390); // Below peptidoglycan in normal mechanism
+        }
+
+        function drawNormalMechanism() {
+            drawBackground(normalCtx);
+
+            // Peptidoglicano (pared celular)
+            const integrity = normalState.peptidoglycan.integrity / 100;
+            normalCtx.fillStyle = `rgba(230, 126, 34, ${integrity})`;
+            normalCtx.fillRect(
+                normalState.peptidoglycan.x, 
+                normalState.peptidoglycan.y, 
+                normalState.peptidoglycan.width, 
+                normalState.peptidoglycan.height
+            );
+            normalCtx.strokeStyle = '#D35400';
+            normalCtx.lineWidth = 2;
+            normalCtx.strokeRect(
+                normalState.peptidoglycan.x, 
+                normalState.peptidoglycan.y, 
+                normalState.peptidoglycan.width, 
+                normalState.peptidoglycan.height
+            );
+
+            // PBP (Proteína fijadora de penicilina)
+            normalCtx.fillStyle = '#9B59B6';
+            normalCtx.fillRect(normalState.pbp.x, normalState.pbp.y, normalState.pbp.width, normalState.pbp.height);
+            normalCtx.strokeStyle = '#8E44AD';
+            normalCtx.lineWidth = 2;
+            normalCtx.strokeRect(normalState.pbp.x, normalState.pbp.y, normalState.pbp.width, normalState.pbp.height);
+
+            // Sitio activo de PBP
+            normalCtx.fillStyle = '#E8C547';
+            normalCtx.fillRect(normalState.pbp.x + 30, normalState.pbp.y + 20, 20, 20);
+
+            // Imipenem
+            normalCtx.fillStyle = '#FF6B6B';
+            normalCtx.fillRect(normalState.imipenem.x, normalState.imipenem.y, normalState.imipenem.width, normalState.imipenem.height);
+            normalCtx.strokeStyle = '#E74C3C';
+            normalCtx.lineWidth = 2;
+            normalCtx.strokeRect(normalState.imipenem.x, normalState.imipenem.y, normalState.imipenem.width, normalState.imipenem.height);
+
+            // Anillo β-lactámico (within Imipenem)
+            normalCtx.fillStyle = '#95E1D3';
+            normalCtx.beginPath();
+            normalCtx.arc(
+                normalState.imipenem.x + normalState.imipenem.width/2, 
+                normalState.imipenem.y + normalState.imipenem.height/2, 
+                8, 0, 2 * Math.PI
+            );
+            normalCtx.fill();
+
+            // Enlaces covalentes si está unido
+            if (normalState.bound && currentStage >= 2) {
+                normalCtx.strokeStyle = '#F1C40F';
+                normalCtx.lineWidth = 3;
+                normalCtx.beginPath();
+                normalCtx.moveTo(normalState.imipenem.x + normalState.imipenem.width / 2, normalState.imipenem.y + normalState.imipenem.height / 2);
+                normalCtx.lineTo(normalState.pbp.x + 40, normalState.pbp.y + 30);
+                normalCtx.stroke();
+            }
+
+            // Etiquetas
+            normalCtx.fillStyle = 'white';
+            normalCtx.font = '11px Arial';
+            normalCtx.fillText('PBP', normalState.pbp.x + 25, normalState.pbp.y - 5);
+            normalCtx.fillText('Imipenem', normalState.imipenem.x - 10, normalState.imipenem.y - 5);
+            normalCtx.fillText(`Peptidoglicano (${Math.round(normalState.peptidoglycan.integrity)}%)`, 
+                normalState.peptidoglycan.x, normalState.peptidoglycan.y - 5);
+        }
+
+        function drawResistanceMechanism() {
+            drawBackground(resistanceCtx);
+
+            // NDM-1
+            resistanceCtx.fillStyle = '#4ECDC4';
+            resistanceCtx.fillRect(resistanceState.ndm1.x, resistanceState.ndm1.y, resistanceState.ndm1.width, resistanceState.ndm1.height);
+            resistanceCtx.strokeStyle = '#2C8E87';
+            resistanceCtx.lineWidth = 3;
+            resistanceCtx.strokeRect(resistanceState.ndm1.x, resistanceState.ndm1.y, resistanceState.ndm1.width, resistanceState.ndm1.height);
+
+            // Sitio activo
+            resistanceCtx.fillStyle = '#2C8E87';
+            resistanceCtx.fillRect(resistanceState.ndm1.x + 40, resistanceState.ndm1.y + 20, 40, 40);
+
+            // Iones Zinc (Zn1 y Zn2)
+            resistanceCtx.fillStyle = '#FFD93D';
+            resistanceCtx.beginPath();
+            resistanceCtx.arc(resistanceState.zn1.x, resistanceState.zn1.y, resistanceState.zn1.radius, 0, 2 * Math.PI);
+            resistanceCtx.fill();
+            resistanceCtx.beginPath();
+            resistanceCtx.arc(resistanceState.zn2.x, resistanceState.zn2.y, resistanceState.zn2.radius, 0, 2 * Math.PI);
+            resistanceCtx.fill();
+
+            // Molécula de agua
+            if (currentStage >= 3) {
+                resistanceCtx.fillStyle = resistanceState.water.activated ? '#3498DB' : '#85C1E9';
+                resistanceCtx.beginPath();
+                resistanceCtx.arc(resistanceState.water.x, resistanceState.water.y, resistanceState.water.radius, 0, 2 * Math.PI);
+                resistanceCtx.fill();
+                
+                if (resistanceState.water.activated) {
+                    // Activation effect
+                    resistanceCtx.strokeStyle = '#3498DB';
+                    resistanceCtx.lineWidth = 2;
+                    for (let i = 1; i <= 2; i++) {
+                        resistanceCtx.beginPath();
+                        resistanceCtx.arc(resistanceState.water.x, resistanceState.water.y, resistanceState.water.radius + i * 5, 0, 2 * Math.PI);
+                        resistanceCtx.globalAlpha = 0.5 - i * 0.2;
+                        resistanceCtx.stroke();
+                    }
+                    resistanceCtx.globalAlpha = 1;
+                }
+            }
+
+            // Imipenem
+            resistanceCtx.fillStyle = '#FF6B6B';
+            resistanceCtx.fillRect(resistanceState.imipenem.x, resistanceState.imipenem.y, resistanceState.imipenem.width, resistanceState.imipenem.height);
+            resistanceCtx.strokeStyle = '#E74C3C';
+            resistanceCtx.lineWidth = 2;
+            resistanceCtx.strokeRect(resistanceState.imipenem.x, resistanceState.imipenem.y, resistanceState.imipenem.width, resistanceState.imipenem.height);
+
+            // Anillo β-lactámico (intacto o hidrolizado)
+            if (resistanceState.betaRing.intact) {
+                resistanceCtx.globalAlpha = resistanceState.betaRing.opacity;
+                resistanceCtx.fillStyle = '#95E1D3';
+                resistanceCtx.beginPath();
+                resistanceState.betaRing.x = resistanceState.imipenem.x + resistanceState.imipenem.width/2;
+                resistanceState.betaRing.y = resistanceState.imipenem.y + resistanceState.imipenem.height/2;
+                resistanceCtx.arc(resistanceState.betaRing.x, resistanceState.betaRing.y, resistanceState.betaRing.radius, 0, 2 * Math.PI);
+                resistanceCtx.fill();
+                resistanceCtx.globalAlpha = 1;
+            } else {
+                // Fragmentos hidrolizados
+                resistanceCtx.fillStyle = '#95E1D3';
+                resistanceCtx.globalAlpha = resistanceState.betaRing.opacity; // Opacidad de los fragmentos
+                for (let i = 0; i < 6; i++) {
+                    resistanceCtx.beginPath();
+                    const angle = i * Math.PI / 3;
+                    const distance = 15 + (100 - resistanceState.betaRing.opacity * 100) * 0.3; // fragments move outwards
+                    resistanceCtx.arc(
+                        resistanceState.betaRing.x + Math.cos(angle) * distance,
+                        resistanceState.betaRing.y + Math.sin(angle) * distance,
+                        3, 0, 2 * Math.PI
+                    );
+                    resistanceCtx.fill();
+                }
+                resistanceCtx.globalAlpha = 1;
+            }
+
+            // Tetrahedral Intermediate
+            if (resistanceState.intermediate.visible) {
+                resistanceCtx.fillStyle = `rgba(231, 76, 60, ${resistanceState.intermediate.opacity})`;
+                resistanceCtx.beginPath();
+                resistanceCtx.arc(resistanceState.intermediate.x, resistanceState.intermediate.y, 8, 0, 2 * Math.PI);
+                resistanceCtx.fill();
+                
+                // Tension lines
+                resistanceCtx.strokeStyle = `rgba(231, 76, 60, ${resistanceState.intermediate.opacity})`;
+                resistanceCtx.lineWidth = 2;
+                for (let i = 0; i < 4; i++) {
+                    const angle = i * Math.PI / 2;
+                    resistanceCtx.beginPath();
+                    resistanceCtx.moveTo(resistanceState.intermediate.x, resistanceState.intermediate.y);
+                    resistanceCtx.lineTo(
+                        resistanceState.intermediate.x + Math.cos(angle) * 15,
+                        resistanceState.intermediate.y + Math.sin(angle) * 15
+                    );
+                    resistanceCtx.stroke();
+                }
+            }
+
+            // Nucleophilic attack arrow
+            if (currentStage >= 4 && resistanceState.water.activated && resistanceState.imipenem.x <= resistanceState.ndm1.x + resistanceState.ndm1.width / 2 + 30) {
+                resistanceCtx.strokeStyle = '#3498DB';
+                resistanceCtx.lineWidth = 3;
+                resistanceCtx.beginPath();
+                resistanceCtx.moveTo(resistanceState.water.x, resistanceState.water.y - resistanceState.water.radius);
+                resistanceCtx.lineTo(resistanceState.betaRing.x, resistanceState.betaRing.y);
+                resistanceCtx.stroke();
+                
+                // Arrowhead
+                resistanceCtx.beginPath();
+                resistanceCtx.moveTo(resistanceState.betaRing.x, resistanceState.betaRing.y);
+                resistanceCtx.lineTo(resistanceState.betaRing.x - 5, resistanceState.betaRing.y - 10);
+                resistanceCtx.lineTo(resistanceState.betaRing.x + 5, resistanceState.betaRing.y - 10);
+                resistanceCtx.closePath();
+                resistanceCtx.fillStyle = '#3498DB';
+                resistanceCtx.fill();
+            }
+
+            // Etiquetas
+            resistanceCtx.fillStyle = 'white';
+            resistanceCtx.font = '11px Arial';
+            resistanceCtx.fillText('NDM-1', resistanceState.ndm1.x + 40, resistanceState.ndm1.y - 5);
+            resistanceCtx.font = '9px Arial';
+            resistanceCtx.fillText('Zn1', resistanceState.zn1.x - 8, resistanceState.zn1.y - 10);
+            resistanceCtx.fillText('Zn2', resistanceState.zn2.x - 8, resistanceState.zn2.y + 15);
+            resistanceCtx.fillText('Imipenem', resistanceState.imipenem.x - 10, resistanceState.imipenem.y - 5);
+            if (currentStage >= 3) {
+                resistanceCtx.fillText('H₂O', resistanceState.water.x - 10, resistanceState.water.y + 15);
+            }
+        }
+
+        function drawCombinedResistanceMechanism() {
+            drawBackground(combinedResistanceCtx);
+
+            // NDM-1
+            combinedResistanceCtx.fillStyle = '#4ECDC4';
+            combinedResistanceCtx.fillRect(combinedResistanceState.ndm1.x, combinedResistanceState.ndm1.y, combinedResistanceState.ndm1.width, combinedResistanceState.ndm1.height);
+            combinedResistanceCtx.strokeStyle = '#2C8E87';
+            combinedResistanceCtx.lineWidth = 3;
+            combinedResistanceCtx.strokeRect(combinedResistanceState.ndm1.x, combinedResistanceState.ndm1.y, combinedResistanceState.ndm1.width, combinedResistanceState.ndm1.height);
+
+            // Sitio activo
+            combinedResistanceCtx.fillStyle = '#2C8E87';
+            combinedResistanceCtx.fillRect(combinedResistanceState.ndm1.x + 40, combinedResistanceState.ndm1.y + 20, 40, 40);
+
+            // Iones Zinc (Zn1 y Zn2)
+            combinedResistanceCtx.fillStyle = '#FFD93D';
+            combinedResistanceCtx.beginPath();
+            combinedResistanceCtx.arc(combinedResistanceState.zn1.x, combinedResistanceState.zn1.y, combinedResistanceState.zn1.radius, 0, 2 * Math.PI);
+            combinedResistanceCtx.fill();
+            combinedResistanceCtx.beginPath();
+            combinedResistanceCtx.arc(combinedResistanceState.zn2.x, combinedResistanceState.zn2.y, combinedResistanceState.zn2.radius, 0, 2 * Math.PI);
+            combinedResistanceCtx.fill();
+
+            // Combined Imipenem (larger and with protection groups)
+            combinedResistanceCtx.fillStyle = '#A0D911'; // Green for combined imipenem
+            combinedResistanceCtx.fillRect(combinedResistanceState.imipenem.x, combinedResistanceState.imipenem.y, combinedResistanceState.imipenem.width, combinedResistanceState.imipenem.height);
+            combinedResistanceCtx.strokeStyle = '#7AA821';
+            combinedResistanceCtx.lineWidth = 2;
+            combinedResistanceCtx.strokeRect(combinedResistanceState.imipenem.x, combinedResistanceState.imipenem.y, combinedResistanceState.imipenem.width, combinedResistanceState.imipenem.height);
+
+            // Protection Groups
+            combinedResistanceState.protectionGroups.forEach(group => {
+                combinedResistanceCtx.fillStyle = group.color;
+                combinedResistanceCtx.beginPath();
+                combinedResistanceCtx.arc(
+                    combinedResistanceState.imipenem.x + group.x - combinedResistanceState.imipenem.x, // Adjust relative position
+                    combinedResistanceState.imipenem.y + group.y - combinedResistanceState.imipenem.y, // Adjust relative position
+                    group.radius, 0, 2 * Math.PI
+                );
+                combinedResistanceCtx.fill();
+            });
+
+
+            // Beta-lactam ring (always intact for combined imipenem)
+            combinedResistanceCtx.fillStyle = '#95E1D3';
+            combinedResistanceCtx.beginPath();
+            combinedResistanceCtx.arc(
+                combinedResistanceState.imipenem.x + combinedResistanceState.imipenem.width / 2, 
+                combinedResistanceState.imipenem.y + combinedResistanceState.imipenem.height / 2, 
+                8, 0, 2 * Math.PI
+            );
+            combinedResistanceCtx.fill();
+
+            // Visualizing attempted binding / steric hindrance
+            if (combinedResistanceState.attemptedBinding && currentStage >= 2) {
+                combinedResistanceCtx.strokeStyle = 'rgba(255, 140, 0, 0.7)'; // Orange for "clash"
+                combinedResistanceCtx.lineWidth = 4;
+                combinedResistanceCtx.setLineDash([5, 5]); // Dashed line for struggle
+                combinedResistanceCtx.beginPath();
+                combinedResistanceCtx.moveTo(combinedResistanceState.imipenem.x + combinedResistanceState.imipenem.width / 2, combinedResistanceState.imipenem.y + combinedResistanceState.imipenem.height / 2);
+                combinedResistanceCtx.lineTo(combinedResistanceState.ndm1.x + combinedResistanceState.ndm1.width / 2, combinedResistanceState.ndm1.y + combinedResistanceState.ndm1.height / 2);
+                combinedResistanceCtx.stroke();
+                combinedResistanceCtx.setLineDash([]); // Reset line dash
+
+                // Small "X" marks or vibration for hindrance
+                if (animationFrameCount % 10 < 5) {
+                    combinedResistanceCtx.fillStyle = 'red';
+                    combinedResistanceCtx.font = '20px Arial';
+                    combinedResistanceCtx.fillText('X', combinedResistanceState.imipenem.x + combinedResistanceState.imipenem.width/2 + 20, combinedResistanceState.imipenem.y + combinedResistanceState.imipenem.height/2 - 10);
+                }
+            }
+
+            // Molécula de agua for combined - shows it doesn't get activated/doesn't attack effectively
+            if (currentStage >= 3) {
+                 combinedResistanceCtx.fillStyle = '#85C1E9'; // Water remains inactive
+                 combinedResistanceCtx.beginPath();
+                 combinedResistanceCtx.arc(combinedResistanceState.water.x, combinedResistanceState.water.y, combinedResistanceState.water.radius, 0, 2 * Math.PI);
+                 combinedResistanceCtx.fill();
+            }
+
+            // Hydrolysis prevented message
+            if (currentStage >= 6 && combinedResistanceState.hydrolysisPrevented) {
+                combinedResistanceCtx.fillStyle = '#A0D911'; // Green for success
+                combinedResistanceCtx.font = '24px Arial';
+                combinedResistanceCtx.fillText('HIDRÓLISIS PREVENIDA!', combinedResistanceCanvas.width / 2, combinedResistanceCanvas.height / 2 + 50);
+            }
+
+            // Etiquetas
+            combinedResistanceCtx.fillStyle = 'white';
+            combinedResistanceCtx.font = '11px Arial';
+            combinedResistanceCtx.fillText('NDM-1', combinedResistanceState.ndm1.x + 40, combinedResistanceState.ndm1.y - 5);
+            combinedResistanceCtx.font = '9px Arial';
+            combinedResistanceCtx.fillText('Zn1', combinedResistanceState.zn1.x - 8, combinedResistanceState.zn1.y - 10);
+            combinedResistanceCtx.fillText('Zn2', combinedResistanceState.zn2.x - 8, combinedResistanceState.zn2.y + 15);
+            combinedResistanceCtx.fillText('Imipenem Combinado', combinedResistanceState.imipenem.x - 10, combinedResistanceState.imipenem.y - 5);
+            if (currentStage >= 3) {
+                combinedResistanceCtx.fillText('H₂O (inactiva)', combinedResistanceState.water.x - 30, combinedResistanceState.water.y + 15);
+            }
+        }
+
+        function animate() {
+            if (!isPlaying) return;
+
+            animationFrameCount++;
+            if (animationFrameCount % 2 !== 0) { // Slow down animation by updating every other frame
+                animationId = requestAnimationFrame(animate);
+                return;
+            }
+
+            progress++;
+
+            // --- Normal mechanism animation ---
+            if (!normalState.bound && currentStage <= 2) { // Imipenem moves towards PBP
+                normalState.imipenem.x -= normalState.imipenem.speed;
+                if (normalState.imipenem.x <= normalState.imipenem.targetX) {
+                    normalState.imipenem.x = normalState.imipenem.targetX;
+                    normalState.bound = true;
+                }
+            } else if (normalState.bound && currentStage >= 2 && normalState.peptidoglycan.integrity > 0) {
+                // PBP inhibits peptidoglycan synthesis
+                normalState.peptidoglycan.integrity = Math.max(0, normalState.peptidoglycan.integrity - 0.5);
+            }
+
+            // --- Resistance mechanism animation (Original Imipenem) ---
+            if (!resistanceState.hydrolyzed && currentStage <= 2) { // Imipenem moves towards NDM-1
+                resistanceState.imipenem.x -= resistanceState.imipenem.speed;
+                if (resistanceState.imipenem.x <= resistanceState.imipenem.targetX) {
+                    resistanceState.imipenem.x = resistanceState.imipenem.targetX;
+                }
+            }
+
+            if (currentStage >= 3 && resistanceState.imipenem.x <= resistanceState.ndm1.x + resistanceState.ndm1.width / 2 + 30) {
+                resistanceState.water.activated = true;
+            }
+
+            if (currentStage >= 4 && resistanceState.water.activated) {
+                // Move water to attack point
+                const dx_water = resistanceState.betaRing.x - resistanceState.water.x;
+                const dy_water = resistanceState.betaRing.y - resistanceState.water.y;
+                const dist_water = Math.sqrt(dx_water * dx_water + dy_water * dy_water);
+
+                if (dist_water > resistanceState.water.speed) {
+                    resistanceState.water.x += (dx_water / dist_water) * resistanceState.water.speed;
+                    resistanceState.water.y += (dy_water / dist_water) * resistanceState.water.speed;
+                } else {
+                    resistanceState.water.x = resistanceState.betaRing.x;
+                    resistanceState.water.y = resistanceState.betaRing.y;
+                    resistanceState.intermediate.visible = true;
+                    resistanceState.intermediate.opacity = Math.min(1, resistanceState.intermediate.opacity + 0.05);
+                }
+            }
+
+            if (currentStage >= 5 && resistanceState.intermediate.visible) {
+                resistanceState.betaRing.opacity = Math.max(0, resistanceState.betaRing.opacity - 0.01); // Slowly fade out
+                resistanceState.intermediate.opacity = Math.max(0, resistanceState.intermediate.opacity - 0.02); // Fade out intermediate
+
+                if (resistanceState.betaRing.opacity <= 0.1 && resistanceState.betaRing.intact) {
+                    resistanceState.betaRing.intact = false;
+                    resistanceState.hydrolyzed = true;
+                    resistanceState.intermediate.visible = false;
+                    resistanceState.betaRing.opacity = 1; // Reset opacity for fragments
+                }
+            }
+
+            // --- Combined Imipenem resistance animation ---
+            if (currentStage <= 2) { // Combined Imipenem moves towards NDM-1
+                combinedResistanceState.imipenem.x -= combinedResistanceState.imipenem.speed;
+                // Update protection group positions relative to imipenem
+                const imipenemMoveX = -combinedResistanceState.imipenem.speed;
+                combinedResistanceState.protectionGroups.forEach(group => {
+                    group.x += imipenemMoveX;
+                });
+
+                if (combinedResistanceState.imipenem.x <= combinedResistanceState.imipenem.targetX) {
+                    combinedResistanceState.imipenem.x = combinedResistanceState.imipenem.targetX;
+                    combinedResistanceState.attemptedBinding = true; // Indicate steric clash
+                }
+            }
+
+            if (currentStage >= 3 && combinedResistanceState.attemptedBinding) {
+                // Water does not activate or move towards the ring for combined imipenem
+                // No hydrolysis occurs for combined imipenem
+                combinedResistanceState.hydrolysisPrevented = true;
+            }
+
+
+            drawNormalMechanism();
+            drawResistanceMechanism();
+            drawCombinedResistanceMechanism(); // Draw the new canvas
+
+            if (progress >= 100) { // Each stage lasts for 100 frames of progress
+                progress = 0;
+                currentStage++;
+                if (currentStage < stages.length) {
+                    updateStageInfo(currentStage);
+                } else {
+                    // End of simulation
+                    pauseSimulation();
+                    document.getElementById('stage-info').innerHTML = "<p><strong>¡Simulación Completa!</strong> Reinicia para volver a ver.</p>";
+                    document.getElementById('play-btn').disabled = true;
+                    return;
+                }
+            }
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function startSimulation() {
+            if (!isPlaying) {
+                isPlaying = true;
+                document.getElementById('play-btn').disabled = true;
+                document.getElementById('pause-btn').disabled = false;
+                updateStageInfo(currentStage);
+                animate();
+            }
+        }
+
+        function pauseSimulation() {
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('pause-btn').disabled = true;
+        }
+
+        function resetSimulation() {
+            pauseSimulation();
+            currentStage = 0;
+            progress = 0;
+            animationFrameCount = 0;
+
+            normalState = {
+                imipenem: { x: 500, y: 200, width: 40, height: 25, targetX: 350, speed: 5 },
+                pbp: { x: 300, y: 180, width: 80, height: 60 },
+                peptidoglycan: { x: 50, y: 300, width: 500, height: 40, integrity: 100 },
+                bound: false
+            };
+
+            resistanceState = {
+                imipenem: { x: 500, y: 200, width: 40, height: 25, targetX: 280, speed: 5 },
+                ndm1: { x: 200, y: 180, width: 120, height: 80 },
+                zn1: { x: 230, y: 200, radius: 6 },
+                zn2: { x: 270, y: 220, radius: 6 },
+                water: { x: 250, y: 240, radius: 4, activated: false, targetX: 280, targetY: 210, speed: 3 },
+                betaRing: { x: 520, y: 212, radius: 12, intact: true, opacity: 1 },
+                intermediate: { visible: false, x: 280, y: 210, opacity: 0 },
+                hydrolyzed: false
+            };
+
+            combinedResistanceState = {
+                imipenem: { x: 500, y: 200, width: 60, height: 35, targetX: 280, speed: 5 },
+                ndm1: { x: 200, y: 180, width: 120, height: 80 },
+                zn1: { x: 230, y: 200, radius: 6 },
+                zn2: { x: 270, y: 220, radius: 6 },
+                water: { x: 250, y: 240, radius: 4, activated: false, targetX: 280, targetY: 210, speed: 3 },
+                betaRing: { x: 520, y: 212, radius: 12, intact: true, opacity: 1 },
+                protectionGroups: [],
+                attemptedBinding: false,
+                hydrolysisPrevented: false
+            };
+            initCombinedImipenem(); // Re-initialize protection group positions
+
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('stage-info').innerHTML = "<p>Presiona PLAY para ver ambos mecanismos: acción normal vs resistencia bacteriana</p>";
+
+            // Redraw initial state
+            drawNormalMechanism();
+            drawResistanceMechanism();
+            drawCombinedResistanceMechanism();
+        }
+
+        // Initial draw when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            resetSimulation(); // Call reset to draw initial state
+        });
+    </script>
+</body>
+</html>
